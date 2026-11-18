@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: telemetry-detector
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    streams:
+      application-id: telemetry-detector
+      properties:
+        processing.guarantee: ${PROCESSING_GUARANTEE:exactly_once_v2}
+        num.stream.threads: 2
+        num.standby.replicas: 1
+        commit.interval.ms: 500
+        statestore.cache.max.bytes: 67108864
+        replication.factor: ${TOPIC_RF:1}
+        session.timeout.ms: 6000
+        heartbeat.interval.ms: 2000
+        state.dir: ${STATE_DIR:/tmp/kafka-streams}
+    consumer:                      # used only by the Arena bridge listener
+      group-id: telemetry-arena-bridge
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:                      # used only to publish bridge dead letters
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      concurrency: 1
+
+server:
+  port: ${SERVER_PORT:8082}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+telemetry:
+  topics:
+    replication-factor: ${TOPIC_RF:1}
+  detection:
+    detector-version: "1.0.0"
+    cooldown: 10m
+    integrity-emit-interval: 5s
+    aimbot:
+      window-size: 5s
+      advance: 1s
+      grace: 2s
+      min-hits: 12
+      max-avg-reaction-ms: 140
+      min-headshot-rate: 0.62
+    speedhack:
+      window-size: 5s
+      advance: 1s
+      grace: 2s
+      min-moving-samples: 40
+      moving-speed-floor: 0.5
+      speed-limit: 7.5
+      min-overspeed-ratio: 0.15
+  arena:
+    enabled: ${ARENA_ENABLED:false}
+    base-url: ${ARENA_BASE_URL:http://localhost:8080}
+    service-username: telemetry-sim
+    service-password: ${TELEMETRY_SERVICE_PASSWORD:}
+    max-retries: 3
+    initial-backoff: 1s
+    backoff-multiplier: 2.0

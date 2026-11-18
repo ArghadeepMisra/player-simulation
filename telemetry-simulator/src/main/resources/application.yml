@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: telemetry-simulator
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: all
+      batch-size: 65536
+      compression-type: lz4
+      properties:
+        enable.idempotence: true
+        linger.ms: 10
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 120000
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+telemetry:
+  topics:
+    replication-factor: ${TOPIC_RF:1}
+  sim:
+    seed: ${SIM_SEED:42}
+    players: ${SIM_PLAYERS:1000}
+    duration: ${SIM_DURATION:5m}
+    match-size: 10
+    match-duration: 120s
+    tick-hz: 20
+    shots-per-second: 4.5
+    kill-chance-per-hit: 0.25
+    shard-threads: 4
+    cheater-ratio: 0.05
+    pro-ratio: 0.02
+    cheat-start-min: 10s
+    cheat-start-max: 60s
+    malformed-ratio: 0.001
+  arena:
+    enabled: ${ARENA_ENABLED:false}
+    base-url: ${ARENA_BASE_URL:http://localhost:8080}
+    service-username: telemetry-sim
+    service-password: ${TELEMETRY_SERVICE_PASSWORD:}
+    player-password: ${SIM_PLAYER_PASSWORD:sim-player-pass}
+    register-concurrency: 16
+    mapping-file: ${SIM_MAPPING_FILE:./sim-players.json}
