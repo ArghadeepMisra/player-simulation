@@ -1,4 +1,13 @@
-# Local stack: single-node KRaft broker and Kafka UI. Detector replicas, Prometheus and Grafana are not wired in yet.
+# Full stack: broker, Kafka UI, 3 detector replicas, Prometheus and Grafana.
+# The simulator and the verifier sit behind profiles so each run is started deliberately:
+#   docker compose --profile sim up -d telemetry-simulator
+#   docker compose --profile tools run --rm telemetry-verifier --mode=detection
+x-app: &app
+  env_file: .env
+  extra_hosts: ["host.docker.internal:host-gateway"]
+  depends_on:
+    kafka: { condition: service_healthy }
+
 services:
   kafka:
     image: apache/kafka:${KAFKA_VERSION}
@@ -31,3 +40,49 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
     depends_on:
       kafka: { condition: service_healthy }
+
+  telemetry-detector:
+    <<: *app
+    build: { context: ., args: { MODULE: telemetry-detector } }
+    environment:
+      KAFKA_BOOTSTRAP: kafka:19092
+      SERVER_PORT: "8082"
+    deploy:
+      replicas: 3
+    # DECISION: a memory cap per container keeps the stack inside Docker Desktop's VM on a 16 GB laptop. Without
+    # one, each JVM sizes its heap from the whole VM (-XX:MaxRAMPercentage=75) and three detectors starve the host.
+    mem_limit: 1g
+
+  telemetry-simulator:
+    <<: *app
+    profiles: ["sim"]
+    build: { context: ., args: { MODULE: telemetry-simulator } }
+    ports: ["8081:8081"]
+    environment:
+      KAFKA_BOOTSTRAP: kafka:19092
+      # .env carries SERVER_PORT=8082 for the detectors, and an environment variable beats server.port in the YAML.
+      SERVER_PORT: "8081"
+      SIM_MAPPING_FILE: /data/sim-players.json
+    volumes: ["./data:/data"]
+    mem_limit: 1g
+
+  telemetry-verifier:
+    <<: *app
+    profiles: ["tools"]
+    build: { context: ., args: { MODULE: telemetry-verifier } }
+    environment:
+      KAFKA_BOOTSTRAP: kafka:19092
+      REPORTS_DIR: /app/reports
+    volumes: ["./reports:/app/reports"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes: ["./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro

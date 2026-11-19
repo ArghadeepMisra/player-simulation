@@ -36,7 +36,11 @@ build/
 reports/
 data/
 .env
+.env.*
+!.env.example
 sim-players.json
+*.pem
+*.key
 
 ### Local notes and tooling ###
 CLAUDE.md

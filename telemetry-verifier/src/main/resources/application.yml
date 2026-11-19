@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: telemetry-verifier
+  main:
+    web-application-type: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+
+telemetry:
+  verifier:
+    reports-dir: ${REPORTS_DIR:./reports}
+    read-timeout: 30s

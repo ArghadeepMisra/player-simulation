@@ -9,6 +9,8 @@ import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Removes repeats. A hopping window keeps matching for as long as a cheater cheats, so the same player would be
@@ -16,6 +18,8 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * the cooldown is dropped. "Now" is the injected {@link Clock}, not event time.
  */
 public final class CooldownProcessor implements Processor<String, FlagCandidate, String, SuspiciousPlayer> {
+
+    private static final Logger log = LoggerFactory.getLogger(CooldownProcessor.class);
 
     private final Duration cooldown;
     private final String detectorVersion;
@@ -48,6 +52,7 @@ public final class CooldownProcessor implements Processor<String, FlagCandidate,
         }
         store.put(storeKey, now);
         metrics.flagged(candidate.rule());
+        log.info("Flag player={} rule={} score={}", candidate.playerId(), candidate.rule(), candidate.score());
         SuspiciousPlayer flag = new SuspiciousPlayer(
                 UUID.randomUUID().toString(),
                 candidate.playerId(),

@@ -1,0 +1,272 @@
+{
+  "uid": "telemetry",
+  "title": "Fairplay Telemetry",
+  "editable": true,
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-10m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Events produced/sec",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(telemetry_sim_events_sent_total[30s]))",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Events processed/sec",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(telemetry_detect_events_parsed_total[30s]))",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Stream process rate by instance",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (instance) (kafka_stream_thread_process_rate)",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Consumer lag (max)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(kafka_consumer_fetch_manager_records_lag_max{client_id=~\"telemetry-detector.*\"})",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Flags/min by rule",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (rule) (rate(telemetry_detect_flags_total[1m])) * 60",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Dead letters/min",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(telemetry_detect_events_dead_lettered_total[1m])) * 60",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Cheaters active",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "telemetry_sim_players_cheating",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Bridge outcomes",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (outcome) (rate(telemetry_bridge_matches_posted_total[1m]))",
+          "refId": "A",
+          "legendFormat": "{{rule}}{{outcome}}{{instance}}"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    "fairplay"
+  ]
+}

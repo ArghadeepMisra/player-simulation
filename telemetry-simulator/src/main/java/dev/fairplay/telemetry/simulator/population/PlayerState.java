@@ -24,6 +24,15 @@ public record PlayerState(
         Long cheatStartsAt,
         AtomicLong seq) {
 
+    /**
+     * The same player under another id, with a fresh sequence counter. Used when Arena assigns the real ids: the
+     * simulator makes up ids first (so usernames and behavior stay seeded) and swaps them before anything is sent.
+     */
+    public PlayerState withPlayerId(String newPlayerId) {
+        return new PlayerState(index, newPlayerId, username, country, segment, cheatType, skillTier, base, cheat,
+                cheatStartsAt, new AtomicLong());
+    }
+
     /** The profile in force at {@code nowMs}: the cheat profile from {@code cheatStartsAt} on, else the base one. */
     public BehaviorProfile profileAt(long nowMs) {
         return isCheatingAt(nowMs) ? cheat : base;

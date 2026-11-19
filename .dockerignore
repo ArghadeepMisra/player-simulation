@@ -1,0 +1,6 @@
+**/target
+reports
+data
+.git
+.env
+.idea
